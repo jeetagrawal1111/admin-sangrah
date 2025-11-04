@@ -1,0 +1,38 @@
+/* app/globals.css - Updated for Tailwind v4 */
+@import "tailwindcss";
+
+@theme {
+  /* Define your custom color palette */
+  --color-primary-50: #fef7ff;
+  --color-primary-100: #fce8ff;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  /* You can also define a default shade */
+  --color-primary: var(--color-primary-600);
+
+  /* Your existing background and foreground variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    /* --foreground: #ededed; */
+    --foreground: #000;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
