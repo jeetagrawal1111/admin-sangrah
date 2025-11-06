@@ -79,6 +79,19 @@ export default function ViewContent() {
     }
   };
 
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   // Filter and sort content
   const filteredAndSortedContent = content
     .filter(item => {
@@ -92,13 +105,22 @@ export default function ViewContent() {
       );
     })
     .sort((a, b) => {
-      const aValue = a[sortBy] || '';
-      const bValue = b[sortBy] || '';
+      let aValue, bValue;
+
+      if (sortBy === 'createdAt') {
+        // Handle date sorting
+        aValue = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        bValue = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      } else {
+        // Handle string sorting for other fields
+        aValue = a[sortBy] || '';
+        bValue = b[sortBy] || '';
+      }
 
       if (sortOrder === 'asc') {
-        return aValue.localeCompare(bValue);
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
-        return bValue.localeCompare(aValue);
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
 
@@ -215,8 +237,8 @@ export default function ViewContent() {
             </div>
 
             {filteredAndSortedContent.length > 0 && (
-              <div className="items-center space-x-4 text-sm">
-                <div className="text-gray-600 mb-1">Sort by:</div>
+              <div className="flex flex-col items-end space-y-2">
+                <div className="text-sm text-gray-600">Sort by:</div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -225,7 +247,11 @@ export default function ViewContent() {
                   <option value="titleAlpha">Alphabetic Title</option>
                   <option value="title">Original Title</option>
                   <option value="god">God/Deity</option>
+                  <option value="createdAt">Created Time</option>
                 </select>
+                <div className="text-xs text-gray-500">
+                  {sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending'}
+                </div>
               </div>
             )}
           </div>
@@ -263,13 +289,18 @@ export default function ViewContent() {
                   <div className="bg-gray-50 p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
                             {item.god}
                           </span>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             {item.id}
                           </span>
+                          {item.createdAt && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              {formatDate(item.createdAt)}
+                            </span>
+                          )}
                         </div>
 
                         <h4 className="text-sm font-semibold text-gray-900 mb-1">
@@ -284,7 +315,7 @@ export default function ViewContent() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => toggleExpand(item.id)}
-                          className=" text-gray-400 hover:text-gray-600 transition-colors"
+                          className="text-gray-400 hover:text-gray-600 transition-colors"
                         >
                           {expandedItems.has(item.id) ? (
                             <ChevronUp className="w-5 h-5" />
@@ -335,6 +366,26 @@ export default function ViewContent() {
                           >
                             Copy Content
                           </button>
+                        </div>
+                      </div>
+
+                      {/* Additional metadata */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Content ID:</span> {item.id}
+                          </div>
+                          <div>
+                            <span className="font-medium">Language:</span> {LANGUAGES.find(l => l.code === item.language)?.name || item.language}
+                          </div>
+                          <div>
+                            <span className="font-medium">Category:</span> {CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+                          </div>
+                          {item.createdAt && (
+                            <div className="md:col-span-3">
+                              <span className="font-medium">Created:</span> {formatDate(item.createdAt)}
+                            </div>
+                          )}
                         </div>
                       </div>
 
