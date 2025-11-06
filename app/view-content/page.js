@@ -296,20 +296,15 @@ export default function ViewContent() {
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             {item.id}
                           </span>
-                          {item.createdAt && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              {formatDate(item.createdAt)}
-                            </span>
-                          )}
                         </div>
 
                         <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                          {item.titleAlpha}
+                          {item.titleAlpha+" - "}
+                          <span className="text-gray-600 text-sm devanagari">
+                            {item.title}
+                          </span>
                         </h4>
 
-                        <p className="text-gray-600 text-sm devanagari">
-                          {item.title}
-                        </p>
                       </div>
 
                       <div className="flex items-center space-x-2">
