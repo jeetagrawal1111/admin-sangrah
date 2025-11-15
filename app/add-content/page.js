@@ -10,23 +10,22 @@ export default function AddContent() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (formData, setFormData) => {
     setLoading(true);
     setSuccess('');
 
     try {
       const response = await apiService.addContent(formData);
-
       toast.success('Content added successfully!!');
       setSuccess(`Content "${formData.title}" has been added successfully to ${formData.language} / ${formData.category}`);
-      // Reset form
+      setFormData(prev => ({ ...prev, title: '', titleAlpha: '', content: '', contentAlpha: '' }));
       setTimeout(() => {
         setSuccess('');
       }, 1000);
-      
+
     } catch (error) {
       console.error('Error adding content:', error);
-      
+
       const errorMessage = error.response?.data?.error || 'Failed to add content. Please try again.';
       toast.error(errorMessage);
     } finally {
