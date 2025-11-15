@@ -51,9 +51,8 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (validateForm()) {
-      onSubmit(formData);
+      onSubmit(formData, setFormData);
     }
   };
 
