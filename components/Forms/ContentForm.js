@@ -19,11 +19,112 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
     language: '',
     content: '',
     contentAlpha: '',
-    key:''
+    key: ''
   });
 
   const [errors, setErrors] = useState({});
   const [generatingId, setGeneratingId] = useState(false);
+  const [translatingTitle, setTranslatingTitle] = useState(false);
+  const [translatingContent, setTranslatingContent] = useState(false);
+
+  const getScriptName = (languageCode) => {
+    const scriptMap = {
+      'hi': 'Devanagari',
+      'mr': 'Devanagari',
+      'raj': 'Devanagari',
+      'te': 'Telugu',
+      'ta': 'Tamil',
+      'kn': 'Kannada'
+    };
+    return scriptMap[languageCode] || 'Devanagari';
+  };
+
+  const convertHtmlToText = (html) => {
+    let text = html.replace(/<br\s*\/?>/gi, '\n');
+    text = text.replace(/<[^>]*>/g, '');
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    text = textarea.value;
+    text = text.replace(/\n{3,}/g, '\n\n');
+    return text.trim();
+  };
+  const transliterate = async (text, languageCode) => {
+    if (!text.trim()) {
+      toast.error('No text to translate');
+      return '';
+    }
+
+    if (!languageCode) {
+      toast.error('Please select a language first');
+      return '';
+    }
+
+    try {
+      const response = await fetch('https://www.aksharamukha.com/api/convert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          source: getScriptName(languageCode),
+          target: 'RomanColloquial',
+          text: text,
+          nativize: true,
+          postOptions: [],
+          preOptions: []
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Translation failed');
+      }
+      const data = await response.text();
+      const cleanText = convertHtmlToText(data);
+      return cleanText;
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast.error('Failed to translate. Please try again.');
+      return '';
+    }
+  };
+
+  // Handle title translation
+  const handleTitleTranslate = async () => {
+    if (!formData.title.trim()) {
+      toast.error('Please enter title in original script first');
+      return;
+    }
+
+    setTranslatingTitle(true);
+    try {
+      const translatedText = await transliterate(formData.title, formData.language);
+      if (translatedText) {
+        handleChange('titleAlpha', translatedText);
+        toast.success('Title translated successfully');
+      }
+    } finally {
+      setTranslatingTitle(false);
+    }
+  };
+
+  // Handle content translation
+  const handleContentTranslate = async () => {
+    if (!formData.content.trim()) {
+      toast.error('Please enter content in original script first');
+      return;
+    }
+
+    setTranslatingContent(true);
+    try {
+      const translatedText = await transliterate(formData.content, formData.language);
+      if (translatedText) {
+        handleChange('contentAlpha', translatedText);
+        toast.success('Content translated successfully');
+      }
+    } finally {
+      setTranslatingContent(false);
+    }
+  };
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -64,7 +165,6 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
 
     setGeneratingId(true);
     try {
-      // Fetch the next available ID from the server
       const response = await apiService.getNextId(formData.language, formData.category);
 
       if (response.data.nextId) {
@@ -76,7 +176,6 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
     } catch (error) {
       console.error('Error generating ID:', error);
       toast.error('Failed to generate ID. Please try again.');
-      // Fallback to manual generation
       const randomNum = Math.floor(Math.random() * 1000) + 1;
       const newId = `${formData.language}_${formData.category}_${randomNum}`;
       handleChange('id', newId);
@@ -211,8 +310,24 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
           </div>
 
           <div>
+            <div className="flex items-center justify-between mb-2 max-sm:mb-1">
+              <label className="block text-sm max-sm:text-xs font-medium text-gray-700">
+                Title (Alphabetic) *
+              </label>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleTitleTranslate}
+                disabled={!formData.title.trim() || !formData.language || translatingTitle}
+                loading={translatingTitle}
+                className="text-xs max-sm:text-[10px]"
+                style={{ borderRadius: '8px', padding: '4px' }}
+              >
+                {translatingTitle ? 'Translating...' : 'Translate'}
+              </Button>
+            </div>
             <Input
-              label="Title (Alphabetic) *"
               value={formData.titleAlpha}
               onChange={(e) => handleChange('titleAlpha', e.target.value)}
               placeholder="e.g., Shree Ganesh Aarti"
@@ -243,8 +358,24 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
           </div>
 
           <div>
+            <div className="flex items-center justify-between mb-2 max-sm:mb-1">
+              <label className="block text-sm max-sm:text-xs font-medium text-gray-700">
+                Content (Alphabetic) *
+              </label>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleContentTranslate}
+                disabled={!formData.content.trim() || !formData.language || translatingContent}
+                loading={translatingContent}
+                className="text-xs max-sm:text-[10px]"
+                style={{ borderRadius: '8px', padding: '4px' }}
+              >
+                {translatingContent ? 'Translating...' : 'Translate'}
+              </Button>
+            </div>
             <TextArea
-              label="Content (Alphabetic) *"
               value={formData.contentAlpha}
               onChange={(e) => handleChange('contentAlpha', e.target.value)}
               placeholder="Enter the content in alphabetic script..."
