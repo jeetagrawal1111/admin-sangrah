@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/UI/Button';
 import { Input } from '@/components/UI/Input';
 import { TextArea } from '@/components/UI/TextArea';
@@ -26,6 +26,59 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
   const [generatingId, setGeneratingId] = useState(false);
   const [translatingTitle, setTranslatingTitle] = useState(false);
   const [translatingContent, setTranslatingContent] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Track form changes to enable navigation warning
+  useEffect(() => {
+    const hasData = Object.values(formData).some(value => value.trim() !== '');
+    setHasUnsavedChanges(hasData);
+  }, [formData]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+
+    const handlePopState = (e) => {
+      const confirmLeave = window.confirm(
+        'Are you sure you want to exit? All changes will be lost.'
+      );
+
+      if (!confirmLeave) {
+        window.history.pushState(null, '', window.location.href);
+      } else {
+        // Allow navigation
+        setHasUnsavedChanges(false);
+        window.removeEventListener('popstate', handlePopState);
+      }
+    };
+
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [hasUnsavedChanges]);
+
+  const sanitizeTransliteratedText = (text) => {
+    const replacements = {
+      'svami': 'swami', 'dhyana': 'dhyan',
+      'Svami': 'Swami',  //more
+    };
+
+    let sanitized = text;
+    Object.keys(replacements).forEach(key => {
+      const regex = new RegExp(`\\b${key}\\b`, 'g');
+      sanitized = sanitized.replace(regex, replacements[key]);
+    });
+
+    return sanitized;
+  };
 
   const getScriptName = (languageCode) => {
     const scriptMap = {
@@ -48,6 +101,7 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
     text = text.replace(/\n{3,}/g, '\n\n');
     return text.trim();
   };
+
   const transliterate = async (text, languageCode) => {
     if (!text.trim()) {
       toast.error('No text to translate');
@@ -80,7 +134,11 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
       }
       const data = await response.text();
       const cleanText = convertHtmlToText(data);
-      return cleanText;
+
+      // Apply sanitization before returning
+      const sanitizedText = sanitizeTransliteratedText(cleanText);
+
+      return sanitizedText;
     } catch (error) {
       console.error('Translation error:', error);
       toast.error('Failed to translate. Please try again.');
@@ -153,6 +211,7 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      setHasUnsavedChanges(false); // Clear warning before submit
       onSubmit(formData, setFormData);
     }
   };
