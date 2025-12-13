@@ -35,6 +35,14 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
   }, [formData]);
 
   useEffect(() => {
+    if (formData.language) {
+      document.title = `Aarti Sangrah - ${formData.language}`;
+    } else {
+      document.title = 'Aarti Sangrah - Admin Panel';
+    }
+  }, [formData.language]);
+
+  useEffect(() => {
     if (!hasUnsavedChanges) return;
     const handleBeforeUnload = (e) => {
       e.preventDefault();
@@ -67,8 +75,8 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
 
   const sanitizeTransliteratedText = (text) => {
     const replacements = {
-      'svami': 'swami', 'dhyana': 'dhyan', 'bhagavana': 'bhagwan', 'hanumana': 'hanuman', 'bajaranga' : 'bajarang', 'apane':'apne', 'mem' : 'mein',
-      'Svami': 'Swami', 'shri' : 'shree'
+      'svami': 'swami', 'dhyana': 'dhyan', 'bhagavana': 'bhagwan', 'hanumana': 'hanuman', 'bajaranga': 'bajarang', 'apane': 'apne', 'mem': 'mein',
+      'Svami': 'Swami', 'shri': 'shree'
     };
 
     let sanitized = text;
@@ -246,7 +254,7 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-sm:space-y-2">
       {/* Language & Category Section */}
-      <div className="bg-white rounded-xl border-2 border-gray-200 p-6 max-sm:p-2 max-sm:rounded-lg max-sm:border">
+      <div className="bg-white rounded-xl border-2 max-sm:border-0 border-gray-200 p-6 max-sm:p-0 max-sm:rounded-lg">
         <h3 className="text-lg max-sm:text-base font-semibold text-gray-900 mb-4 max-sm:mb-2 flex items-center">
           <span className="w-2 h-2 bg-primary-600 rounded-full mr-3 max-sm:mr-2 max-sm:w-1.5 max-sm:h-1.5"></span>
           Content Details
@@ -478,5 +486,3 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
     </form>
   );
 };
-
-
