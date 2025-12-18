@@ -76,7 +76,7 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
   const sanitizeTransliteratedText = (text) => {
     const replacements = {
       'svami': 'swami', 'dhyana': 'dhyan', 'bhagavana': 'bhagwan', 'hanumana': 'hanuman', 'bajaranga': 'bajarang', 'apane': 'apne', 'mem': 'mein',
-      'Svami': 'Swami', 'shri': 'shree'
+      'Svami': 'Swami', 'shri': 'shree', 'Shri' : 'Shree'
     };
 
     let sanitized = text;
@@ -486,3 +486,4 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
     </form>
   );
 };
+
