@@ -76,7 +76,8 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
   const sanitizeTransliteratedText = (text) => {
     const replacements = {
       'svami': 'swami', 'dhyana': 'dhyan', 'bhagavana': 'bhagwan', 'hanumana': 'hanuman', 'bajaranga': 'bajarang', 'apane': 'apne', 'mem': 'mein',
-      'Svami': 'Swami', 'shri': 'shree', 'Shri' : 'Shree', 'jaya ' : 'jai ', 'shiva ' : 'shiv '
+      'Svami': 'Swami', 'shri': 'shree', 'Shri' : 'Shree', 'jaya ' : 'jai ', 'shiva ' : 'shiv ', 'nama ': 'naam ', 'savare':'saware', 'divana':'diwana', 'itani':'itni',
+      'shyama ':'shyam ', 'bahuta ':'bahut ', 'kuchha':'kuch'
     };
 
     let sanitized = text;
@@ -486,5 +487,6 @@ export const ContentForm = ({ onSubmit, loading = false }) => {
     </form>
   );
 };
+
 
 
